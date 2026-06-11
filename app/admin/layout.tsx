@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase-server'
+import Sidebar from './components/Sidebar'
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -9,5 +10,12 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     redirect('/login')
   }
 
-  return <>{children}</>
+  return (
+    <div style={{ display: 'flex', height: '100vh' }}>
+      <Sidebar />
+      <main style={{ flex: 1, overflow: 'auto' }}>
+        {children}
+      </main>
+    </div>
+  )
 }

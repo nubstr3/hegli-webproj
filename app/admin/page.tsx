@@ -2,6 +2,8 @@
 
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import DateTimeBar from './components/DateTimeBar'
+import WidgetGrid from './components/WidgetGrid'
 
 export default function AdminPage() {
   const router = useRouter()
@@ -12,10 +14,9 @@ export default function AdminPage() {
   }
 
   return (
-    <div>
-      <h1>Admin dashboard</h1>
-      <p>Welcome back, Henry.</p>
-      <button onClick={handleLogout}>Log out</button>
+    <div style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+      <DateTimeBar />
+      <WidgetGrid />
     </div>
   )
 }
