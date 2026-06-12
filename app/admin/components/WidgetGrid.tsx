@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
+import GitHubWidget from './GitHubWidget'
 
 type Reminder = {
   id: number
@@ -106,15 +107,7 @@ export default function WidgetGrid() {
         </div>
       </div>
 
-      <div style={{
-        background: 'var(--background)',
-        border: '0.5px solid #e5e5e5',
-        borderRadius: '12px',
-        padding: '1rem 1.25rem',
-      }}>
-        <p style={{ fontSize: '12px', color: '#888', margin: '0 0 10px' }}>GitHub activity</p>
-        <p style={{ fontSize: '13px', color: '#444', margin: '0' }}>Loading...</p>
-      </div>
+      <GitHubWidget />
 
       <div style={{
         background: 'var(--background)',
