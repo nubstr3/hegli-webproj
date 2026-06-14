@@ -39,7 +39,8 @@ Personal website and admin dashboard built with Next.js, Supabase, and Tailwind 
 - Custom stock deviation from personal buy price
 - Mobile responsiveness polish
 - Dark mode toggle
-- Modular Widgets 
+- Modular Widgets
+- Theme Changer
 
 ## Project Structure
 
