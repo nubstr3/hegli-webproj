@@ -18,6 +18,7 @@ export default function Home() {
           <div style={{ display: 'flex', gap: '24px' }}>
             <a href="#about" style={{ fontSize: '13px', color: '#888', textDecoration: 'none' }}>about</a>
             <a href="#contact" style={{ fontSize: '13px', color: '#888', textDecoration: 'none' }}>contact</a>
+            <a href="/projects" style={{ fontSize: '13px', color: '#888', textDecoration: 'none' }}>projects</a>
           </div>
         </nav>
 
