@@ -34,8 +34,8 @@ export default function ProjectsPage() {
         <Link href="/" style={{ fontSize: '14px', fontWeight: '500', color: '#111', textDecoration: 'none' }}>hegli.dev</Link>
         <div style={{ display: 'flex', gap: '24px' }}>
           <Link href="/#about" style={{ fontSize: '13px', color: '#888', textDecoration: 'none' }}>about</Link>
-          <Link href="/projects" style={{ fontSize: '13px', color: '#111', textDecoration: 'none', fontWeight: '500' }}>projects</Link>
           <Link href="/#contact" style={{ fontSize: '13px', color: '#888', textDecoration: 'none' }}>contact</Link>
+          <Link href="/projects" style={{ fontSize: '13px', color: '#111', textDecoration: 'none', fontWeight: '500' }}>projects</Link>
         </div>
       </nav>
 
