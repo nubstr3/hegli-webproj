@@ -16,6 +16,9 @@ Personal website and admin dashboard built with Next.js, Supabase, and Tailwind 
 - Dark hero landing page
 - About me section
 - Contact section with GitHub and LinkedIn links
+- Public projects section
+- Ecommerce and Hotel demo pages
+
 
 ### Admin Dashboard (private, auth required)
 - Supabase authentication — login/logout with session management
@@ -29,7 +32,6 @@ Personal website and admin dashboard built with Next.js, Supabase, and Tailwind 
 
 - Stocks widget (Finnhub API) — personalised watchlist with live prices
 - News & patch notes widget — League of Legends and Overwatch patch notes
-- Public projects section
 - About me page
 - UI polish and dark mode
 
