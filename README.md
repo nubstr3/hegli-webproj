@@ -43,6 +43,7 @@ Personal website and admin dashboard built with Next.js, Supabase, and Tailwind 
 - Dark mode toggle
 - Modular Widgets 
 - Theme Changer
+- Software Project Demos
 
 ## Project Structure
 
