@@ -1,82 +1,113 @@
-import Link from 'next/link'
+import Link from "next/link";
+import PageShell from "@/app/components/PageShell";
+import { ACCENT, BG_PANEL, BORDER_SUBTLE, FONT_MONO, TEXT_MUTED } from "@/app/components/theme";
 
-const projects = [
+type Project = {
+  title: string;
+  description: string;
+  slug: string;
+  status: "live" | "soon";
+};
+
+const projects: Project[] = [
   {
-    title: 'E-commerce Platform',
-    description: 'A modern online store with product listings, cart, and checkout flow.',
-    slug: 'ecommerce',
-    emoji: '🛍️',
-    bg: '#0f0f0f',
-    tags: ['Next.js', 'Tailwind'],
+    title: "ecommerce/",
+    description: "Sidebar filters, sale gate, dark neon palette",
+    slug: "ecommerce",
+    status: "live",
   },
   {
-    title: 'Hotel Booking',
-    description: 'A hotel reservation platform with room listings, availability and booking flow.',
-    slug: 'hotel',
-    emoji: '🏨',
-    bg: '#0a1628',
-    tags: ['Next.js', 'Tailwind'],
+    title: "hotel/",
+    description: "Password gate, booking widget, gold on navy",
+    slug: "hotel",
+    status: "live",
   },
   {
-    title: 'News Website',
-    description: 'A modern news platform with article listings, categories and reading view.',
-    slug: 'news',
-    emoji: '📰',
-    bg: '#1a0a00',
-    tags: ['Next.js', 'Tailwind'],
+    title: "news/",
+    description: "Patch notes for LoL + Overwatch, in progress",
+    slug: "news",
+    status: "soon",
   },
-]
+];
 
 export default function ProjectsPage() {
   return (
-    <main>
-      <nav style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.25rem 2rem', borderBottom: '0.5px solid #e5e5e5' }}>
-        <Link href="/" style={{ fontSize: '14px', fontWeight: '500', color: '#111', textDecoration: 'none' }}>hegli.dev</Link>
-        <div style={{ display: 'flex', gap: '24px' }}>
-          <Link href="/#about" style={{ fontSize: '13px', color: '#888', textDecoration: 'none' }}>about</Link>
-          <Link href="/#contact" style={{ fontSize: '13px', color: '#888', textDecoration: 'none' }}>contact</Link>
-          <Link href="/projects" style={{ fontSize: '13px', color: '#111', textDecoration: 'none', fontWeight: '500' }}>projects</Link>
-        </div>
-      </nav>
-
-      <div style={{ padding: '3rem 2rem', maxWidth: '900px', margin: '0 auto' }}>
-        <div style={{ marginBottom: '2.5rem' }}>
-          <p style={{ fontSize: '11px', color: '#888', margin: '0 0 10px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Projects</p>
-          <p style={{ fontSize: '28px', fontWeight: '500', margin: '0', letterSpacing: '-0.5px' }}>Things I've built</p>
-          <p style={{ fontSize: '14px', color: '#888', margin: '8px 0 0' }}>A collection of UI demos and design explorations</p>
+    <PageShell>
+      <div style={{ flex: 1, padding: "48px 64px", display: "flex", flexDirection: "column" }}>
+        <div style={{ fontFamily: FONT_MONO, fontSize: 28, fontWeight: 700, marginBottom: 36 }}>
+          Things I&apos;ve shipped
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0,1fr))', gap: '16px' }}>
-          {projects.map((project) => (
-            <div key={project.slug} style={{ border: '0.5px solid #e5e5e5', borderRadius: '12px', overflow: 'hidden' }}>
-              <div style={{ height: '140px', background: project.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-                  <div style={{ width: '36px', height: '36px', background: '#fff', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>
-                    {project.emoji}
-                  </div>
-                  <span style={{ fontSize: '10px', background: 'rgba(255,255,255,0.1)', color: '#666', padding: '3px 8px', borderRadius: '20px' }}>demo</span>
-                </div>
+        <div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
+          {projects.map((p) => (
+            <div
+              key={p.slug}
+              style={{
+                width: 380,
+                padding: 28,
+                background: BG_PANEL,
+                border: `1px solid ${BORDER_SUBTLE}`,
+                borderRadius: 10,
+              }}
+            >
+              <div
+                style={{
+                  width: 48,
+                  height: 48,
+                  borderRadius: 6,
+                  border: p.status === "live" ? `1px solid ${ACCENT}` : "1px dashed rgba(255,255,255,0.22)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: 17,
+                  color: p.status === "live" ? ACCENT : "#6B6B72",
+                  fontFamily: FONT_MONO,
+                }}
+              >
+                [ ]
               </div>
-              <div style={{ padding: '1rem' }}>
-                <p style={{ fontSize: '14px', fontWeight: '500', margin: '0 0 6px' }}>{project.title}</p>
-                <p style={{ fontSize: '12px', color: '#888', margin: '0 0 12px', lineHeight: 1.6 }}>{project.description}</p>
-                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '12px' }}>
-                  {project.tags.map(tag => (
-                    <span key={tag} style={{ fontSize: '10px', background: '#f5f5f5', color: '#888', padding: '2px 8px', borderRadius: '20px' }}>{tag}</span>
-                  ))}
-                </div>
-                <Link href={`/projects/${project.slug}`} style={{ fontSize: '12px', color: '#111', textDecoration: 'none', fontWeight: '500' }}>
-                  View demo →
+              <div style={{ fontFamily: FONT_MONO, fontSize: 16, fontWeight: 600, marginTop: 18 }}>
+                {p.title}
+              </div>
+              <div style={{ fontSize: 14, color: TEXT_MUTED, marginTop: 8, lineHeight: 1.5 }}>
+                {p.description}
+              </div>
+
+              {p.status === "live" ? (
+                <Link
+                  href={`/projects/${p.slug}`}
+                  style={{
+                    display: "inline-block",
+                    marginTop: 16,
+                    fontSize: 12,
+                    color: ACCENT,
+                    border: `1px solid ${ACCENT}`,
+                    borderRadius: 999,
+                    padding: "4px 12px",
+                    textDecoration: "none",
+                  }}
+                >
+                  Live
                 </Link>
-              </div>
+              ) : (
+                <div
+                  style={{
+                    display: "inline-block",
+                    marginTop: 16,
+                    fontSize: 12,
+                    color: "#8C8C94",
+                    border: "1px dashed #6B6B72",
+                    borderRadius: 999,
+                    padding: "4px 12px",
+                  }}
+                >
+                  Coming soon
+                </div>
+              )}
             </div>
           ))}
         </div>
       </div>
-
-      <footer style={{ padding: '2rem', borderTop: '0.5px solid #e5e5e5', textAlign: 'center' }}>
-        <p style={{ fontSize: '12px', color: '#aaa', margin: '0' }}>© 2026 hegli.dev</p>
-      </footer>
-    </main>
-  )
+    </PageShell>
+  );
 }
