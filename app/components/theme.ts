@@ -2,6 +2,9 @@
 // the public site (home, about, projects, contact, boot sequence).
 
 export const ACCENT = "#5EEAD4";
+// Secondary accent used only for the "beta" project tier, so it reads as
+// its own tier rather than blending into "live" or "building".
+export const ACCENT_BETA = "#7DD3FC";
 
 export const FONT_MONO = "var(--font-jetbrains-mono), monospace";
 export const FONT_SANS = "var(--font-inter), sans-serif";
