@@ -14,6 +14,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   return (
     <div
+      data-admin-root
       style={{
         minHeight: '100vh',
         background: BG_GRADIENT,
@@ -35,7 +36,12 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         }}
       />
       <AdminNav />
-      <main style={{ flex: 1, position: 'relative', zIndex: 1 }}>{children}</main>
+      <main style={{ flex: 1, position: 'relative', zIndex: 1 }}>
+        {/* one shared container: every admin page starts at the same spot */}
+        <div style={{ maxWidth: 1280, margin: '0 auto', padding: '28px 24px 72px', boxSizing: 'border-box' }}>
+          {children}
+        </div>
+      </main>
       <SiteFooter />
     </div>
   )

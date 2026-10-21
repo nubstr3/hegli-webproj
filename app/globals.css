@@ -92,3 +92,38 @@ body {
     opacity: 0.85;
   }
 }
+
+/* --- Small text-button actions (admin files page etc.) --- */
+
+.hegli-act {
+  color: #9a9aa0;
+  transition: color 0.12s ease;
+}
+
+.hegli-act:hover,
+.hegli-act:focus-visible {
+  color: #5eead4;
+}
+
+/* destructive actions turn red on hover instead (must come after .hegli-act:hover) */
+.hegli-act-danger:hover,
+.hegli-act-danger:focus-visible {
+  color: #d96b6b;
+}
+
+/* the [y] in a "sure?" prompt: red by default, lighter red on hover */
+.hegli-act-yes {
+  color: #d96b6b;
+  transition: color 0.12s ease;
+}
+
+.hegli-act-yes:hover,
+.hegli-act-yes:focus-visible {
+  color: #f08a8a;
+}
+
+/* Admin pages differ in height, so the scrollbar comes and goes between them.
+   Reserve its space so the content never shifts sideways when navigating. */
+html:has([data-admin-root]) {
+  scrollbar-gutter: stable;
+}

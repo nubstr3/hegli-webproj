@@ -9,9 +9,9 @@ import { ACCENT, BG_STATUSBAR, BORDER_SUBTLE, FONT_MONO, TEXT_DIM, TEXT_FAINT } 
 const NAV_ITEMS = [
   { href: "/admin", label: "1 overview", built: true },
   { href: "/admin/projects", label: "2 projects", built: false },
-  { href: "/admin/notes", label: "3 notes", built: false },
+  { href: "/admin/notes", label: "3 notes", built: true },
   { href: "/admin/about", label: "4 about", built: false },
-  { href: "/admin/files", label: "5 files", built: false },
+  { href: "/admin/files", label: "5 files", built: true },
   { href: "/admin/settings", label: "6 settings", built: false },
 ];
 
