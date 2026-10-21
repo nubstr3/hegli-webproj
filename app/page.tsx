@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import BootOverlay from "./components/BootOverlay";
 import PageShell from "./components/PageShell";
 import HomeDesktop from "./components/HomeDesktop";
-import { BOOT_STORAGE_KEY, BOOT_TTL_MS } from "./components/bootStorage";
+import { BOOT_STORAGE_KEY, BOOT_TTL_MS, takeBootForce } from "./components/bootStorage";
+import { readBootMode } from "./components/sitePrefs";
 
 type BootDecision = { ready: boolean; showBoot: boolean };
 
@@ -17,6 +18,8 @@ export default function Home() {
   useEffect(() => {
     let reduceMotion = false;
     let isFresh = false;
+    const mode = readBootMode();
+    const forced = takeBootForce();
 
     try {
       reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -32,7 +35,7 @@ export default function Home() {
     // one-time setState here (not a render-phase or event-driven update)
     // is the correct, intentional use of this effect.
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setDecision({ ready: true, showBoot: !reduceMotion && !isFresh });
+    setDecision({ ready: true, showBoot: !reduceMotion && (forced || mode === "always" || (mode === "timed" && !isFresh)) });
   }, []);
 
   const finishBoot = () => {

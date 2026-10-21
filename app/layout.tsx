@@ -1,3 +1,4 @@
+import Script from "next/script";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, JetBrains_Mono, Inter } from "next/font/google";
 import "./globals.css";
@@ -24,6 +25,8 @@ const inter = Inter({
   weight: ["400", "500", "600", "700"],
 });
 
+const ACCENT_INIT = `try{var a=localStorage.getItem("hegli-accent");if(a&&/^#[0-9a-fA-F]{6}$/.test(a))document.documentElement.style.setProperty("--accent",a)}catch(e){}`;
+
 export const metadata: Metadata = {
   title: "hegli.dev",
   description: "Personal Developer Portal",
@@ -36,10 +39,13 @@ export default function RootLayout({
 }>) {
   return (
     <html
+      suppressHydrationWarning
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} ${jetbrainsMono.variable} ${inter.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <Script id="hegli-accent-init" strategy="beforeInteractive">{ACCENT_INIT}</Script>
+        {children}</body>
     </html>
   );
 }

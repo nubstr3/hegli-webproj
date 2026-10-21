@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase-server'
 import AdminNav from './components/AdminNav'
 import SiteFooter from '@/app/components/SiteFooter'
-import { BG_GRADIENT, FONT_MONO, TEXT_PRIMARY } from '@/app/components/theme'
+import { BG_GRADIENT, FONT_MONO, TEXT_PRIMARY, TEXT_DIM } from '@/app/components/theme'
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -43,6 +43,23 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         </div>
       </main>
       <SiteFooter />
+
+      {/* bottom-right, level with the (c) note on the left */}
+      <div
+        style={{
+          position: 'absolute',
+          right: 16,
+          bottom: 14,
+          maxWidth: 'calc(100% - 170px)',
+          textAlign: 'right',
+          fontSize: 11,
+          color: TEXT_DIM,
+          zIndex: 1,
+        }}
+      >
+        {"# remember to exit when you're finished. on a shared computer, use a private window."}
+      </div>
+
     </div>
   )
 }

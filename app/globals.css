@@ -102,7 +102,7 @@ body {
 
 .hegli-act:hover,
 .hegli-act:focus-visible {
-  color: #5eead4;
+  color: var(--accent, #5eead4);
 }
 
 /* destructive actions turn red on hover instead (must come after .hegli-act:hover) */

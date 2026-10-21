@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -26,6 +26,16 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
+  const [checking, setChecking] = useState(true);
+
+  // Already signed in (session cookie still valid)? Skip the form.
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      if (data.user) router.replace("/admin");
+      else setChecking(false);
+    });
+  }, [router]);
+
   const handleLogin = async (e: FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
@@ -40,6 +50,8 @@ export default function LoginPage() {
       router.push("/admin");
     }
   };
+
+  if (checking) return <div style={{ minHeight: "100vh", background: BG_GRADIENT }} />;
 
   return (
     <div

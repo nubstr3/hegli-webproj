@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useLiveClock } from "./useLiveClock";
 import { useLivePing } from "./useLivePing";
-import { clearBootFlag } from "./bootStorage";
+import { clearBootFlag, replayBoot } from "./bootStorage";
 import { ACCENT, BG_STATUSBAR, FONT_MONO, TEXT_DIM, TEXT_PRIMARY } from "./theme";
 
 const NAV_ITEMS = [
@@ -25,8 +25,8 @@ export default function SiteNav() {
   const time = useLiveClock();
   const ping = useLivePing();
 
-  const replayBoot = () => {
-    clearBootFlag();
+  const handleReboot = () => {
+    replayBoot();
     // Full reload rather than client-side navigation: the boot gate's
     // decision is made once on mount, so this is the simplest reliable
     // way to force it to run again, from any page.
@@ -90,7 +90,7 @@ export default function SiteNav() {
         }}
       >
         <button
-          onClick={replayBoot}
+          onClick={handleReboot}
           title="Replay the boot sequence"
           style={{
             background: "none",
