@@ -10,7 +10,20 @@ export type FileRow = {
   mime_type: string | null
   created_at: string
   deleted_at: string | null
+  // added with folders (optional so the pages keep working before the SQL is run)
+  folder_id?: string | null
+  trashed_from?: string | null
 }
+
+export type FolderRow = {
+  id: string
+  name: string
+  parent_id: string | null
+  created_at: string
+}
+
+/** Notes made on the Notes page are saved in this top-level folder. */
+export const NOTES_FOLDER = 'site-notes'
 
 export const BUCKET = 'files'
 export const MAX_BYTES = 15 * 1024 * 1024 // keep in sync with the bucket's file_size_limit
@@ -75,4 +88,57 @@ export async function loadRows(): Promise<FileRow[]> {
   const { data, error } = await supabase.from('files').select('*').order('created_at', { ascending: false })
   if (error) throw error
   return (data ?? []) as FileRow[]
+}
+
+/** Every folder (RLS limits this to the signed-in user). Throws if the folders table doesn't exist yet. */
+export async function loadFolders(): Promise<FolderRow[]> {
+  const { data, error } = await supabase.from('folders').select('*').order('name', { ascending: true })
+  if (error) throw error
+  return (data ?? []) as FolderRow[]
+}
+
+/** ['projects', 'atlas-fitness'] for a folder id; [] for the top level. */
+export function folderPathNames(folders: FolderRow[], id: string | null): string[] {
+  const parts: string[] = []
+  let cur = id
+  const seen = new Set<string>()
+  while (cur && !seen.has(cur)) {
+    seen.add(cur)
+    const f = folders.find((x) => x.id === cur)
+    if (!f) break
+    parts.unshift(f.name)
+    cur = f.parent_id
+  }
+  return parts
+}
+
+/** 'projects/atlas-fitness/' (or '' for the top level) */
+export const folderLabel = (folders: FolderRow[], id: string | null) => {
+  const names = folderPathNames(folders, id)
+  return names.length ? names.join('/') + '/' : ''
+}
+
+/** The folder itself plus every folder nested inside it. */
+export function descendantIds(folders: FolderRow[], id: string): string[] {
+  const out = [id]
+  for (const f of folders) {
+    if (f.parent_id === id) out.push(...descendantIds(folders, f.id))
+  }
+  return out
+}
+
+/** Finds the top-level notes folder, creating it the first time. Returns its id. */
+export async function ensureNotesFolder(): Promise<string> {
+  const found = await supabase
+    .from('folders')
+    .select('id')
+    .is('parent_id', null)
+    .eq('name', NOTES_FOLDER)
+    .limit(1)
+  if (found.error) throw found.error
+  if (found.data && found.data.length > 0) return found.data[0].id as string
+
+  const created = await supabase.from('folders').insert({ name: NOTES_FOLDER, parent_id: null }).select('id').single()
+  if (created.error || !created.data) throw created.error ?? new Error('could not create notes folder')
+  return created.data.id as string
 }

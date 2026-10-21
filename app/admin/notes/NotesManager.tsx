@@ -7,6 +7,8 @@ import FileEditor from '../files/FileEditor'
 import {
   BUCKET,
   MAX_BYTES,
+  NOTES_FOLDER,
+  ensureNotesFolder,
   formatDate,
   formatSize,
   isEditable,
@@ -32,11 +34,14 @@ type Editor = {
 
 /**
  * Notes are just text files in the same private bucket as the Files page,
- * so everything saved here also shows up there (and can be downloaded,
- * trashed or restored from either place).
+ * kept in its top-level `site-notes` folder, so everything saved here also
+ * shows up there (and can be downloaded, moved, trashed or restored from
+ * either place). If the folders SQL hasn't been run yet, notes fall back to
+ * the old behaviour (every text file, saved at the top level).
  */
 export default function NotesManager() {
   const [rows, setRows] = useState<FileRow[]>([])
+  const [notesFolder, setNotesFolder] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [notice, setNotice] = useState<Notice>(null)
@@ -44,9 +49,11 @@ export default function NotesManager() {
 
   useEffect(() => {
     let cancelled = false
-    loadRows()
-      .then((r) => {
-        if (!cancelled) setRows(r)
+    Promise.all([loadRows(), ensureNotesFolder().catch(() => null)])
+      .then(([r, folderId]) => {
+        if (cancelled) return
+        setRows(r)
+        setNotesFolder(folderId)
       })
       .catch(() => {
         if (!cancelled) setNotice({ text: "couldn't load notes.", error: true })
@@ -67,7 +74,9 @@ export default function NotesManager() {
     }
   }
 
-  const notes = rows.filter((r) => !r.deleted_at && isEditable(r))
+  const notes = rows.filter(
+    (r) => !r.deleted_at && isEditable(r) && (notesFolder === null || r.folder_id === notesFolder),
+  )
   const dirty = editor ? editor.name !== editor.savedName || editor.content !== editor.savedContent : false
 
   // Don't silently replace an editor that has unsaved work in it.
@@ -176,9 +185,11 @@ export default function NotesManager() {
         setNotice({ text: `couldn't create ${name}: ${uploadError.message}`, error: true })
         return
       }
+      const record: Record<string, unknown> = { name, path, size: blob.size, mime_type: mime }
+      if (notesFolder) record.folder_id = notesFolder
       const { data: inserted, error: insertError } = await supabase
         .from('files')
-        .insert({ name, path, size: blob.size, mime_type: mime })
+        .insert(record)
         .select('id')
         .single()
       if (insertError || !inserted) {
@@ -206,7 +217,9 @@ export default function NotesManager() {
   }
 
   const trashNote = async (row: FileRow) => {
-    const { error } = await supabase.from('files').update({ deleted_at: new Date().toISOString() }).eq('id', row.id)
+    const patch: Record<string, unknown> = { deleted_at: new Date().toISOString() }
+    if (notesFolder) patch.trashed_from = `${NOTES_FOLDER}/`
+    const { error } = await supabase.from('files').update(patch).eq('id', row.id)
     if (error) setNotice({ text: `couldn't trash ${row.name}.`, error: true })
     else setNotice({ text: `${row.name} moved to trash (restore it from files).`, error: false })
     if (editor?.id === row.id) setEditor(null)
@@ -226,7 +239,7 @@ export default function NotesManager() {
 
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 14, alignItems: 'flex-start' }}>
         <Pane
-          title="notes/"
+          title={notesFolder ? `notes/ (files/${NOTES_FOLDER}/)` : 'notes/'}
           right={<span style={{ color: TEXT_FAINT }}>{notes.length}</span>}
           style={{ flex: '1 1 260px', maxWidth: 360 }}
           bodyStyle={{ display: 'flex', flexDirection: 'column', gap: 14 }}
@@ -339,7 +352,7 @@ export default function NotesManager() {
             >
               select a note to edit it, or start a new one.
               <br />
-              notes are saved as text files in your private files storage.
+              notes are saved as text files in your private files storage{notesFolder ? `, in the ${NOTES_FOLDER}/ folder` : ''}.
             </div>
           )}
         </div>
