@@ -81,7 +81,7 @@ export const BETA_PROJECTS: ProjectEntry[] = [
 export const BUILDING_PROJECTS: ProjectEntry[] = [
   {
     name: "atlas-fitness",
-    description: "A ecommerce website selling commercial and home use fitness equipment",
+    description: "An ecommerce website selling commercial and home use fitness equipment",
     stack: ["Next.js", "Vercel", "Shopify API"],
     updatedLabel: "updated",
     updated: "[AUG 2026]",

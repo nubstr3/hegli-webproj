@@ -1,59 +1,25 @@
 import PageShell from "@/app/components/PageShell";
-import { ACCENT, BG_PANEL, BORDER_SUBTLE, FONT_MONO, TEXT_DIM } from "@/app/components/theme";
+import AboutNotepad from "./AboutNotepad";
+import UpdatesLog from "./UpdatesLog";
+import { getAboutContent } from "./aboutContent";
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const { about, updates } = await getAboutContent();
+
   return (
     <PageShell>
       <div
         style={{
           flex: 1,
           display: "flex",
-          justifyContent: "center",
-          padding: "48px 64px",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: 22,
+          padding: "48px 24px 80px",
         }}
       >
-        <div
-          style={{
-            width: "100%",
-            maxWidth: 760,
-            background: BG_PANEL,
-            border: `1px solid ${BORDER_SUBTLE}`,
-            borderRadius: 10,
-            padding: "36px 40px",
-            fontFamily: FONT_MONO,
-            fontSize: 15,
-            lineHeight: 1.9,
-            boxShadow: "0 24px 48px rgba(0,0,0,0.35)",
-          }}
-        >
-          <div style={{ color: ACCENT }}>
-            Henry &mdash; developer, dillydallyer, player 1.
-          </div>
-          <div style={{ height: 20 }} />
-          <div style={{ color: "#C9C9CE" }}>
-            Based in Auckland, building hegli.dev as a sandbox for real
-          </div>
-          <div style={{ color: "#C9C9CE" }}>
-            features: admin dashboards, auth, APIs, and the occasional
-          </div>
-          <div style={{ color: "#C9C9CE" }}>
-            bit of UI experimentation along the way.
-          </div>
-          <div style={{ height: 20 }} />
-          <div style={{ color: TEXT_DIM }}>currently playing with:</div>
-          <div style={{ color: "#C9C9CE" }}>Next.js, Expo SDK-latest, TestFlight</div>
-          <div style={{ height: 28 }} />
-          <div
-            style={{
-              borderTop: `1px solid ${BORDER_SUBTLE}`,
-              paddingTop: 14,
-              fontSize: 12,
-              color: TEXT_DIM,
-            }}
-          >
-            Ln 9, Col 1
-          </div>
-        </div>
+        <AboutNotepad headline={about.headline} bio={about.bio} playing={about.playing} />
+        <UpdatesLog updates={updates} />
       </div>
     </PageShell>
   );
