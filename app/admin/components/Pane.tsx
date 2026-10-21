@@ -23,6 +23,7 @@ export default function Pane({
       style={{
         flex: "1 1 320px",
         minWidth: 0,
+        minHeight: 0,
         background: BG_PANEL,
         border: `1px solid ${BORDER_SUBTLE}`,
         borderRadius: 6,
@@ -54,6 +55,8 @@ export default function Pane({
           fontSize: 12,
           color: TEXT_PRIMARY,
           flex: 1,
+          minHeight: 0,
+          overflowY: "auto", // scrolls when the widget has been given a fixed height
           ...bodyStyle,
         }}
       >

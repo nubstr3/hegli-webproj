@@ -41,11 +41,11 @@ export default function SteamWidget() {
           view all &rarr;
         </a>
       }
-      bodyStyle={{ display: 'flex', flexDirection: 'column', gap: 10, maxHeight: 260, overflowY: 'auto' }}
+      bodyStyle={{ display: 'flex', flexDirection: 'column', gap: 10 }}
     >
       {failed && <div style={{ color: TEXT_ERROR }}>couldn&apos;t load deals.</div>}
       {!failed && deals === null && <div style={{ color: TEXT_FAINT }}>fetching deals...</div>}
-      {deals?.map((deal, i) => (
+      {deals?.slice(0, 10).map((deal, i) => (
         <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
           <a
             href={deal.url}

@@ -4,4 +4,6 @@ export type WidgetConfig = Record<string, unknown>
 export type WidgetProps = {
   config: WidgetConfig
   onConfigChange: (config: WidgetConfig) => void
+  /** Settings of every widget on the dashboard, keyed by widget type (lets one widget read another's). */
+  siblings: Record<string, WidgetConfig>
 }

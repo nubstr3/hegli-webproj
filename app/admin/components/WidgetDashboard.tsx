@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { supabase } from '@/lib/supabase'
-import { WIDGETS, widgetByType, type WidgetSize } from './widgetRegistry'
+import { WIDGETS, widgetByType, type WidgetHeight, type WidgetSize } from './widgetRegistry'
 import type { WidgetConfig } from './widgetTypes'
 import {
   ACCENT,
@@ -20,6 +20,7 @@ type WidgetRow = {
   id: string
   type: string
   size: WidgetSize
+  height: WidgetHeight
   position: number
   config: WidgetConfig | null
 }
@@ -27,6 +28,28 @@ type WidgetRow = {
 type Notice = { text: string; error: boolean } | null
 
 const AMBER = '#FFB454'
+const GAP = 14
+
+// A row is 6 units wide: normal = 2 (a third), semi = 3 (half), wide = 4, huge = 6 (all of it).
+// Widgets wrap onto a new line when the next one doesn't fit, and leftover space is shared out.
+const SIZES: { id: WidgetSize; units: number; label: string }[] = [
+  { id: 'normal', units: 2, label: '1' },
+  { id: 'semi', units: 3, label: '1.5' },
+  { id: 'wide', units: 4, label: '2' },
+  { id: 'huge', units: 6, label: '3' },
+]
+const HEIGHTS: { id: WidgetHeight; px: number | null; label: string }[] = [
+  { id: 'auto', px: null, label: 'auto' },
+  { id: 'short', px: 240, label: 'S' },
+  { id: 'medium', px: 380, label: 'M' },
+  { id: 'tall', px: 560, label: 'L' },
+]
+
+function flexFor(size: WidgetSize) {
+  const units = SIZES.find((s) => s.id === size)?.units ?? 2
+  const basis = `calc(${((units / 6) * 100).toFixed(4)}% + ${((units / 6) * GAP - GAP).toFixed(3)}px)`
+  return `${units} 1 ${basis}`
+}
 
 const actStyle = {
   background: 'none',
@@ -60,7 +83,7 @@ export default function WidgetDashboard() {
   const load = useCallback(async () => {
     const { data, error } = await supabase
       .from('dashboard_widgets')
-      .select('id, type, size, position, config')
+      .select('id, type, size, height, position, config')
       .order('position', { ascending: true })
     if (error) {
       // 42P01 = relation does not exist (the SQL hasn't been run yet)
@@ -74,7 +97,7 @@ export default function WidgetDashboard() {
   useEffect(() => {
     supabase
       .from('dashboard_widgets')
-      .select('id, type, size, position, config')
+      .select('id, type, size, height, position, config')
       .order('position', { ascending: true })
       .then(({ data, error }) => {
         if (error) {
@@ -100,7 +123,7 @@ export default function WidgetDashboard() {
     setPickerOpen(false)
     setNotice(null)
     const position = rowsRef.current.reduce((m, r) => Math.max(m, r.position), -1) + 1
-    const { error } = await supabase.from('dashboard_widgets').insert({ type, size: def.defaultSize, position })
+    const { error } = await supabase.from('dashboard_widgets').insert({ type, size: def.defaultSize, height: 'auto', position })
     if (error) return fail('add that widget', error.message)
     await load()
   }
@@ -112,11 +135,18 @@ export default function WidgetDashboard() {
     else if (rowsRef.current.length === 0) setEditing(false)
   }
 
-  const toggleSize = async (row: WidgetRow) => {
-    const size: WidgetSize = row.size === 'wide' ? 'normal' : 'wide'
+  const setSize = async (row: WidgetRow, size: WidgetSize) => {
+    if (row.size === size) return
     apply(rowsRef.current.map((r) => (r.id === row.id ? { ...r, size } : r)))
     const { error } = await supabase.from('dashboard_widgets').update({ size }).eq('id', row.id)
     if (error) await fail('resize it', error.message)
+  }
+
+  const setHeight = async (row: WidgetRow, height: WidgetHeight) => {
+    if (row.height === height) return
+    apply(rowsRef.current.map((r) => (r.id === row.id ? { ...r, height } : r)))
+    const { error } = await supabase.from('dashboard_widgets').update({ height }).eq('id', row.id)
+    if (error) await fail('change its height', error.message)
   }
 
   const saveConfig = async (id: string, config: WidgetConfig) => {
@@ -154,6 +184,7 @@ export default function WidgetDashboard() {
     setOverId(null)
   }
 
+  const siblings = Object.fromEntries(rows.map((r) => [r.type, r.config ?? {}]))
   const has = (type: string) => rows.some((r) => r.type === type)
   const empty = !loading && rows.length === 0
 
@@ -212,7 +243,7 @@ export default function WidgetDashboard() {
 
       {tableMissing && (
         <div style={{ fontSize: 12, marginBottom: 14, color: TEXT_MUTED }}>
-          widgets aren&apos;t set up yet: run the dashboard_widgets SQL in Supabase to turn them on.
+          widgets aren&apos;t set up yet: run the dashboard_widgets SQL (including the width/height update) in Supabase to turn them on.
         </div>
       )}
       {notice && (
@@ -264,8 +295,8 @@ export default function WidgetDashboard() {
               }}
               onDragEnd={onDragEnd}
               style={{
-                flex: row.size === 'wide' ? '2 1 660px' : '1 1 320px',
-                minWidth: 0,
+                flex: flexFor(row.size),
+                minWidth: 'min(100%, 280px)',
                 display: 'flex',
                 flexDirection: 'column',
                 gap: 8,
@@ -308,9 +339,6 @@ export default function WidgetDashboard() {
                     >
                       &rarr;
                     </button>
-                    <button type="button" className="hegli-act" style={actStyle} onClick={() => toggleSize(row)}>
-                      {row.size === 'wide' ? 'wide' : 'normal'}
-                    </button>
                     <button
                       type="button"
                       className="hegli-act hegli-act-danger"
@@ -322,8 +350,52 @@ export default function WidgetDashboard() {
                   </span>
                 </div>
               )}
-              <div style={{ display: 'flex', flex: 1, minWidth: 0, pointerEvents: editing ? 'none' : 'auto' }}>
-                <Widget config={row.config ?? {}} onConfigChange={(c) => saveConfig(row.id, c)} />
+              {editing && (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px 18px', fontSize: 12, color: TEXT_FAINT }}>
+                  <span style={{ display: 'flex', gap: 10 }}>
+                    width
+                    {SIZES.map((o) => (
+                      <button
+                        key={o.id}
+                        type="button"
+                        className="hegli-act"
+                        title={o.id}
+                        style={{ ...actStyle, color: row.size === o.id ? ACCENT : '#9A9AA0' }}
+                        onClick={() => setSize(row, o.id)}
+                      >
+                        {row.size === o.id ? `[${o.label}]` : o.label}
+                      </button>
+                    ))}
+                  </span>
+                  <span style={{ display: 'flex', gap: 10 }}>
+                    height
+                    {HEIGHTS.map((o) => (
+                      <button
+                        key={o.id}
+                        type="button"
+                        className="hegli-act"
+                        title={o.id}
+                        style={{ ...actStyle, color: row.height === o.id ? ACCENT : '#9A9AA0' }}
+                        onClick={() => setHeight(row, o.id)}
+                      >
+                        {row.height === o.id ? `[${o.label}]` : o.label}
+                      </button>
+                    ))}
+                  </span>
+                </div>
+              )}
+              <div
+                style={{
+                  display: 'flex',
+                  // a fixed height needs flex-basis auto: "flex: 1" would set the basis to 0 and ignore it
+                  flex: HEIGHTS.find((h) => h.id === row.height)?.px ? '0 0 auto' : 1,
+                  minWidth: 0,
+                  minHeight: 0,
+                  height: HEIGHTS.find((h) => h.id === row.height)?.px ?? undefined,
+                  pointerEvents: editing ? 'none' : 'auto',
+                }}
+              >
+                <Widget config={row.config ?? {}} onConfigChange={(c) => saveConfig(row.id, c)} siblings={siblings} />
               </div>
             </div>
           )
@@ -414,7 +486,7 @@ export default function WidgetDashboard() {
                           padding: '2px 7px',
                           borderRadius: 3,
                           border: '1px solid rgba(255,255,255,0.12)',
-                          color: w.tag === 'NEEDS API KEY' || w.tag === 'EXPERIMENTAL' ? AMBER : TEXT_MUTED,
+                          color: w.tag === 'NEEDS API KEY' || w.tag === 'NEEDS SQL' || w.tag === 'EXPERIMENTAL' ? AMBER : TEXT_MUTED,
                         }}
                       >
                         {w.tag}
