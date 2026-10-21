@@ -41,7 +41,7 @@ export default function AboutPage() {
           </div>
           <div style={{ height: 20 }} />
           <div style={{ color: TEXT_DIM }}>currently playing with:</div>
-          <div style={{ color: "#C9C9CE" }}>Next.js, Supabase, Vercel, Tailwind</div>
+          <div style={{ color: "#C9C9CE" }}>Next.js, Expo SDK-latest, TestFlight</div>
           <div style={{ height: 28 }} />
           <div
             style={{
