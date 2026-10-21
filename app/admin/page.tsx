@@ -1,11 +1,11 @@
 import DateTimeBar from './components/DateTimeBar'
-import WidgetGrid from './components/WidgetGrid'
+import WidgetDashboard from './components/WidgetDashboard'
 
 export default function AdminPage() {
   return (
     <>
       <DateTimeBar />
-      <WidgetGrid />
+      <WidgetDashboard />
     </>
   )
 }

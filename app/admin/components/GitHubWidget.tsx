@@ -32,13 +32,17 @@ type GitHubResponse = {
 
 // Only the most recent weeks are drawn so the graph fits the pane.
 const WEEKS_SHOWN = 36
-const LEVELS = ['rgba(255,255,255,0.06)', '#134e4a', '#0f766e', '#14b8a6', ACCENT]
+// Tiles are shades of the site accent colour, so they follow the accent picker in settings.
+const mix = (pct: number) => `color-mix(in srgb, ${ACCENT} ${pct}%, transparent)`
+const LEVELS = ['rgba(255,255,255,0.06)', mix(28), mix(50), mix(75), ACCENT]
 
-const getColour = (count: number) => {
-  if (count === 0) return LEVELS[0]
-  if (count < 3) return LEVELS[1]
-  if (count < 6) return LEVELS[2]
-  if (count < 9) return LEVELS[3]
+// Levels are relative to your busiest day in view, so a quiet stretch still shows a spread of shades.
+const getColour = (count: number, max: number) => {
+  if (count <= 0 || max <= 0) return LEVELS[0]
+  const r = count / max
+  if (r <= 0.25) return LEVELS[1]
+  if (r <= 0.5) return LEVELS[2]
+  if (r <= 0.75) return LEVELS[3]
   return LEVELS[4]
 }
 
@@ -74,6 +78,9 @@ export default function GitHubWidget() {
       .catch(() => setFailed(true))
   }, [])
 
+  const shown = weeks.slice(-WEEKS_SHOWN)
+  const max = Math.max(0, ...shown.flatMap((w) => w.contributionDays.map((d) => d.contributionCount)))
+
   return (
     <Pane
       title="github.log"
@@ -94,18 +101,33 @@ export default function GitHubWidget() {
         <>
           <div style={{ color: TEXT_FAINT, marginBottom: 10 }}>{totalContributions} contributions this year</div>
 
-          <div style={{ display: 'flex', gap: 2, overflow: 'hidden', marginBottom: 14, justifyContent: 'flex-end' }}>
-            {weeks.slice(-WEEKS_SHOWN).map((week, wi) => (
-              <div key={wi} style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: `repeat(${shown.length || 1}, 1fr)`,
+              gap: 3,
+              marginBottom: 8,
+            }}
+          >
+            {shown.map((week, wi) => (
+              <div key={wi} style={{ display: 'grid', gridTemplateRows: 'repeat(7, auto)', gap: 3 }}>
                 {week.contributionDays.map((day, di) => (
                   <div
                     key={di}
                     title={day.date + ': ' + day.contributionCount + ' contributions'}
-                    style={{ width: 7, height: 7, borderRadius: 1, background: getColour(day.contributionCount) }}
+                    style={{ aspectRatio: '1', borderRadius: 2, background: getColour(day.contributionCount, max) }}
                   />
                 ))}
               </div>
             ))}
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4, marginBottom: 14, color: TEXT_FAINT, fontSize: 11 }}>
+            <span style={{ marginRight: 3 }}>less</span>
+            {LEVELS.map((c, i) => (
+              <span key={i} style={{ width: 9, height: 9, borderRadius: 2, background: c }} />
+            ))}
+            <span style={{ marginLeft: 3 }}>more</span>
           </div>
 
           <div
