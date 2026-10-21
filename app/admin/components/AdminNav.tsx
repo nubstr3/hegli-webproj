@@ -8,7 +8,7 @@ import { ACCENT, BG_STATUSBAR, BORDER_SUBTLE, FONT_MONO, TEXT_DIM, TEXT_FAINT } 
 // Flip `built` to true as each admin page gets created.
 const NAV_ITEMS = [
   { href: "/admin", label: "1 overview", built: true },
-  { href: "/admin/projects", label: "2 projects", built: false },
+  { href: "/admin/projects", label: "2 projects", built: true },
   { href: "/admin/notes", label: "3 notes", built: true },
   { href: "/admin/about", label: "4 about", built: true },
   { href: "/admin/files", label: "5 files", built: true },
