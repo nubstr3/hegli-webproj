@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, type CSSProperties, type FormEvent } from "react";
+import { looksLikeCode } from "@/lib/accessFormat.mjs";
 import {
   ACCENT,
   BG_PANEL,
@@ -51,6 +52,41 @@ export default function HomeDesktop() {
 
   const navigate = (path: string) => router.push(path);
 
+  // Anything shaped like an access code (word-word-1234) is quietly checked on
+  // the server. A wrong code looks exactly like any other unknown command.
+  const tryCode = async (cmd: string) => {
+    try {
+      const res = await fetch("/api/access", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: cmd }),
+      });
+      const data = res.ok ? await res.json() : null;
+      if (data?.ok) {
+        const masked = "•".repeat(cmd.length);
+        const accepted: Line = {
+          type: "out",
+          text: `[ ok ] code accepted · hello, ${data.label}`,
+          color: ACCENT,
+        };
+        const opening: Line = { type: "out", text: "opening travel.log...", color: TEXT_DIM };
+        setHistory((h) =>
+          [
+            ...h.map((l): Line => (l.type === "cmd" && l.text === cmd ? { ...l, text: masked } : l)),
+            accepted,
+            opening,
+          ].slice(-MAX_HISTORY_LINES),
+        );
+        setTimeout(() => navigate("/travel"), 900);
+        return;
+      }
+    } catch {
+      // network trouble looks the same as a wrong code
+    }
+    const notFound: Line = { type: "out", text: `command not found: ${cmd}`, color: TEXT_ERROR };
+    setHistory((h) => [...h, notFound].slice(-MAX_HISTORY_LINES));
+  };
+
   const handleCommand = (raw: string) => {
     const cmd = raw.trim();
     if (!cmd) return;
@@ -97,6 +133,11 @@ export default function HomeDesktop() {
     } else if (lower === "login" || lower === "sudo login") {
       output = [{ type: "out", text: "authenticating...", color: TEXT_DIM }];
       setTimeout(() => navigate("/login"), 350);
+    } else if (looksLikeCode(lower)) {
+      setHistory((h) => [...h, echo].slice(-MAX_HISTORY_LINES));
+      setInput("");
+      void tryCode(cmd);
+      return;
     } else {
       output = [
         { type: "out", text: `command not found: ${cmd}`, color: TEXT_ERROR },
