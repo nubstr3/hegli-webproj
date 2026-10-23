@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Pane from '../components/Pane'
+import AccessCodes from './AccessCodes'
 import { replayBoot } from '@/app/components/bootStorage'
 import {
   ACCENT_OPTIONS,
@@ -349,6 +350,9 @@ export default function SettingsManager() {
             &#8635; replay boot sequence now
           </button>
         </Pane>
+
+        {/* access codes */}
+        <AccessCodes />
       </div>
     </div>
   )

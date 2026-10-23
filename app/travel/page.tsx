@@ -3,6 +3,7 @@ import Link from "next/link";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import PageShell from "@/app/components/PageShell";
+import { isAdmin } from "@/lib/adminAuth";
 import { SESSION_COOKIE, adminClient, verifyAccessToken } from "@/lib/accessCore.mjs";
 import {
   ACCENT,
@@ -66,10 +67,13 @@ export default async function TravelPage({
   searchParams: Promise<{ p?: string }>;
 }) {
   const token = (await cookies()).get(SESSION_COOKIE)?.value;
-  const access = await verifyAccessToken(token, "travel");
+  const codeAccess = await verifyAccessToken(token, "travel");
+  // The site owner, signed in to the admin, can always read it without a code.
+  const owner = codeAccess ? false : await isAdmin();
 
-  // No valid code-login, no page: back to the homepage like it was never here.
-  if (!access) redirect("/");
+  // No valid code-login and not the owner: back to the homepage like it was never here.
+  if (!codeAccess && !owner) redirect("/");
+  const viewerLabel = codeAccess ? codeAccess.label : "admin";
 
   const admin = adminClient();
   const { data } = await admin
@@ -87,11 +91,12 @@ export default async function TravelPage({
   // photos for the open post only, with short-lived links made after the check above
   let photos: SlidePhoto[] = [];
   if (post) {
-    const { data: rows } = await admin
+    const { data: rows, error: rowsError } = await admin
       .from("journal_photos")
       .select("position, width, height, files ( path, deleted_at )")
       .eq("post_id", post.id)
       .order("position", { ascending: true });
+    if (rowsError) console.error("[travel] couldn't read photos:", rowsError.message);
     type Joined = {
       width: number;
       height: number;
@@ -101,10 +106,11 @@ export default async function TravelPage({
       .map((r) => ({ width: r.width, height: r.height, file: Array.isArray(r.files) ? r.files[0] : r.files }))
       .filter((r) => r.file && !r.file.deleted_at);
     if (usable.length) {
-      const { data: signed } = await admin.storage.from(BUCKET).createSignedUrls(
+      const { data: signed, error: signError } = await admin.storage.from(BUCKET).createSignedUrls(
         usable.map((r) => r.file!.path),
         SIGNED_URL_SECONDS,
       );
+      if (signError) console.error("[travel] couldn't sign photo links:", signError.message);
       photos = usable.flatMap((r, i) => {
         const url = signed?.[i]?.signedUrl;
         return url ? [{ url, width: r.width, height: r.height }] : [];
@@ -180,8 +186,14 @@ export default async function TravelPage({
             <span style={{ color: TEXT_MUTED }}>:~/travel$</span> {post ? `cat ${fileName(post, index)}` : "ls"}
           </div>
           <div style={{ display: "flex", gap: 20, color: TEXT_MUTED }}>
-            <span>{access.label}</span>
-            <ExitButton />
+            <span>{viewerLabel}</span>
+            {owner ? (
+              <Link href="/admin" style={{ color: TEXT_MUTED, textDecoration: "none" }}>
+                &#10140; admin
+              </Link>
+            ) : (
+              <ExitButton />
+            )}
           </div>
         </div>
 
