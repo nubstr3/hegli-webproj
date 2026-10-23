@@ -27,6 +27,10 @@ const INITIAL_HISTORY: Line[] = [
   { type: "ls" },
 ];
 
+// How long an unknown command "thinks" before saying command not found.
+// Roughly what a code check takes, so the two can't be told apart by timing.
+const UNKNOWN_DELAY_MS = 700;
+
 const HELP_TEXT =
   "available: whoami, ls, cat about.txt, cd about|projects|contact|home, clear";
 
@@ -56,11 +60,16 @@ export default function HomeDesktop() {
   // the server. A wrong code looks exactly like any other unknown command.
   const tryCode = async (cmd: string) => {
     try {
-      const res = await fetch("/api/access", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code: cmd }),
-      });
+      // Every unknown command waits the same minimum time (see UNKNOWN_DELAY_MS),
+      // so a code-shaped guess can't be told apart by how quickly it answers.
+      const [res] = await Promise.all([
+        fetch("/api/access", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ code: cmd }),
+        }),
+        new Promise((r) => setTimeout(r, UNKNOWN_DELAY_MS)),
+      ]);
       const data = res.ok ? await res.json() : null;
       if (data?.ok) {
         const masked = "•".repeat(cmd.length);
@@ -139,9 +148,14 @@ export default function HomeDesktop() {
       void tryCode(cmd);
       return;
     } else {
-      output = [
-        { type: "out", text: `command not found: ${cmd}`, color: TEXT_ERROR },
-      ];
+      // Same pause a code check takes, so wrong codes and random typing look identical.
+      setHistory((h) => [...h, echo].slice(-MAX_HISTORY_LINES));
+      setInput("");
+      setTimeout(() => {
+        const notFound: Line = { type: "out", text: `command not found: ${cmd}`, color: TEXT_ERROR };
+        setHistory((h) => [...h, notFound].slice(-MAX_HISTORY_LINES));
+      }, UNKNOWN_DELAY_MS);
+      return;
     }
 
     setHistory((h) => [...h, echo, ...output].slice(-MAX_HISTORY_LINES));

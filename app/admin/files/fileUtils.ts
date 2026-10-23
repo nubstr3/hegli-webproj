@@ -127,18 +127,24 @@ export function descendantIds(folders: FolderRow[], id: string): string[] {
   return out
 }
 
-/** Finds the top-level notes folder, creating it the first time. Returns its id. */
-export async function ensureNotesFolder(): Promise<string> {
-  const found = await supabase
-    .from('folders')
-    .select('id')
-    .is('parent_id', null)
-    .eq('name', NOTES_FOLDER)
-    .limit(1)
+/** Journal (travel blog) photos are saved in this top-level folder, one subfolder per post. */
+export const JOURNAL_FOLDER = 'blog-posts'
+
+/** Finds a folder by name under a parent (null = top level), creating it the first time. Returns its id. */
+export async function ensureFolder(name: string, parentId: string | null): Promise<string> {
+  let query = supabase.from('folders').select('id').eq('name', name)
+  query = parentId === null ? query.is('parent_id', null) : query.eq('parent_id', parentId)
+  const found = await query.limit(1)
   if (found.error) throw found.error
   if (found.data && found.data.length > 0) return found.data[0].id as string
 
-  const created = await supabase.from('folders').insert({ name: NOTES_FOLDER, parent_id: null }).select('id').single()
-  if (created.error || !created.data) throw created.error ?? new Error('could not create notes folder')
+  const created = await supabase.from('folders').insert({ name, parent_id: parentId }).select('id').single()
+  if (created.error || !created.data) throw created.error ?? new Error(`could not create folder ${name}`)
   return created.data.id as string
 }
+
+/** Finds the top-level notes folder, creating it the first time. Returns its id. */
+export const ensureNotesFolder = () => ensureFolder(NOTES_FOLDER, null)
+
+/** Finds the top-level blog-posts folder, creating it the first time. Returns its id. */
+export const ensureJournalFolder = () => ensureFolder(JOURNAL_FOLDER, null)

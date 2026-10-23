@@ -12,7 +12,8 @@ const NAV_ITEMS = [
   { href: "/admin/notes", label: "3 notes", built: true },
   { href: "/admin/about", label: "4 about", built: true },
   { href: "/admin/files", label: "5 files", built: true },
-  { href: "/admin/settings", label: "6 settings", built: true },
+  { href: "/admin/journal", label: "6 journal", built: true },
+  { href: "/admin/settings", label: "7 settings", built: true },
 ];
 
 /**

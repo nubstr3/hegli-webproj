@@ -7,6 +7,7 @@ import {
   BUCKET,
   DAY_MS,
   MAX_BYTES,
+  JOURNAL_FOLDER,
   NOTES_FOLDER,
   STORAGE_LIMIT_BYTES,
   TRASH_DAYS,
@@ -101,7 +102,7 @@ const rowStyle: CSSProperties = {
 const nameCell: CSSProperties = { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }
 
 // The Notes page saves into this top-level folder, so it can't be renamed, moved or trashed.
-const isLocked = (f: FolderRow) => f.parent_id === null && f.name === NOTES_FOLDER
+const isLocked = (f: FolderRow) => f.parent_id === null && (f.name === NOTES_FOLDER || f.name === JOURNAL_FOLDER)
 
 const sortByName = (a: FolderRow, b: FolderRow) => a.name.localeCompare(b.name)
 
