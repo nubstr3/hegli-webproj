@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import Pane from '../components/Pane'
 import { BUCKET, JOURNAL_FOLDER, MAX_BYTES, ensureFolder, ensureJournalFolder, formatSize } from '../files/fileUtils'
-import { resizeImage } from './resizeImage'
+import { isPhotoFile, resizeImage } from './resizeImage'
 import { ACCENT, FONT_MONO, TEXT_ERROR, TEXT_FAINT, TEXT_MUTED, TEXT_PRIMARY } from '@/app/components/theme'
 
 type Status = 'draft' | 'published'
@@ -232,7 +232,7 @@ export default function JournalManager() {
     if (!list || list.length === 0) return
     const added: Photo[] = []
     for (const file of Array.from(list)) {
-      if (!file.type.startsWith('image/')) {
+      if (!isPhotoFile(file)) {
         setNotice({ text: `${file.name} isn't a photo, skipped.`, error: true })
         continue
       }
@@ -253,7 +253,7 @@ export default function JournalManager() {
           url: URL.createObjectURL(blob),
         })
       } catch {
-        setNotice({ text: `couldn't read ${file.name} (HEIC photos may not work in this browser).`, error: true })
+        setNotice({ text: `couldn't read ${file.name}.`, error: true })
       }
     }
     if (added.length) setEditor((e) => (e ? { ...e, photos: [...e.photos, ...added], dirty: true } : e))
@@ -579,7 +579,7 @@ export default function JournalManager() {
                       <input
                         ref={fileInput}
                         type="file"
-                        accept="image/*"
+                        accept="image/*,.heic,.heif"
                         multiple
                         hidden
                         onChange={(e) => addFiles(e.target.files)}
