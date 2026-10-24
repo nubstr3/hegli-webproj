@@ -45,7 +45,6 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} ${jetbrainsMono.variable} ${inter.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <script src="/debug.js" />
         <Script id="hegli-accent-init" strategy="beforeInteractive">{ACCENT_INIT}</Script>
         {children}<TouchDetect /></body>
     </html>
