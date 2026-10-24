@@ -28,10 +28,24 @@ export default function MobileLoginPage() {
 
   // Already signed in (session cookie still valid)? Skip the form.
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      if (data.user) router.replace("/admin");
-      else setChecking(false);
-    });
+    let done = false;
+    const show = () => {
+      if (!done) {
+        done = true;
+        setChecking(false);
+      }
+    };
+    // Never leave the form hidden: if the session check errors or hangs (older iOS Safari),
+    // show the form anyway after a moment.
+    const timer = setTimeout(show, 2500);
+    supabase.auth
+      .getUser()
+      .then(({ data }) => {
+        if (data?.user) router.replace("/admin");
+        else show();
+      })
+      .catch(show);
+    return () => clearTimeout(timer);
   }, [router]);
 
   const handleLogin = async (e: FormEvent) => {
