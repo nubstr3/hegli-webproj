@@ -4,10 +4,17 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build && node scripts/lower-for-safari.mjs",
+    "build": "next build",
     "start": "next start",
     "lint": "eslint"
   },
+  "browserslist": [
+     "chrome >= 100",
+     "edge >= 100",
+     "firefox >= 100",
+     "safari >= 15.4",
+     "ios_saf >= 15.4"
+   ],
   "dependencies": {
     "@supabase/ssr": "^0.12.0",
     "@supabase/supabase-js": "^2.108.1",
