@@ -2,6 +2,7 @@ import Script from "next/script";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, JetBrains_Mono, Inter } from "next/font/google";
 import "./globals.css";
+import TouchDetect from "./components/TouchDetect";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -45,7 +46,7 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <Script id="hegli-accent-init" strategy="beforeInteractive">{ACCENT_INIT}</Script>
-        {children}</body>
+        {children}<TouchDetect /></body>
     </html>
   );
 }
