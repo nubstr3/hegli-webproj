@@ -210,8 +210,9 @@ export default function MobileJournal() {
           size: blob.size,
           url: URL.createObjectURL(blob),
         })
-      } catch {
-        setNotice({ text: `couldn't read ${file.name}.`, error: true })
+      } catch (err) {
+        const why = err instanceof Error && err.message ? ` (${err.message})` : ''
+        setNotice({ text: `couldn't read ${file.name}${why}.`, error: true })
       }
     }
     if (added.length) setEditor((e) => (e ? { ...e, photos: [...e.photos, ...added], dirty: true } : e))

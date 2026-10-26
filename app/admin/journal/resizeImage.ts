@@ -15,15 +15,41 @@ const isHeicType = (file: File) => /^image\/hei[cf]/i.test(file.type)
 /** A photo we can handle: any image, including HEIC files that some systems give no type to. */
 export const isPhotoFile = (file: File) => file.type.startsWith('image/') || isHeicName(file)
 
-async function decode(file: File): Promise<ImageBitmap> {
+/** Anything drawImage() can paint, with its pixel size and a way to release it. */
+type Drawable = { source: CanvasImageSource; width: number; height: number; close: () => void }
+
+/** Plain <img> decode: every browser applies the photo's rotation flag itself when drawing this. */
+function decodeWithImg(file: File): Promise<Drawable> {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file)
+    const img = new Image()
+    img.onload = () => resolve({ source: img, width: img.naturalWidth, height: img.naturalHeight, close: () => URL.revokeObjectURL(url) })
+    img.onerror = () => {
+      URL.revokeObjectURL(url)
+      reject(new Error('could not decode image'))
+    }
+    img.src = url
+  })
+}
+
+const fromBitmap = (b: ImageBitmap): Drawable => ({ source: b, width: b.width, height: b.height, close: () => b.close() })
+
+async function decode(file: File): Promise<Drawable> {
+  // 1. Fast path. Older iPhone Safari rejects the imageOrientation option, so don't rely on it.
   try {
-    // imageOrientation "from-image" applies the phone's rotation flag
-    return await createImageBitmap(file, { imageOrientation: 'from-image' })
+    return fromBitmap(await createImageBitmap(file, { imageOrientation: 'from-image' }))
+  } catch {
+    /* try the next way */
+  }
+  // 2. Ordinary image element (applies the photo's rotation flag in every browser)
+  try {
+    return await decodeWithImg(file)
   } catch (err) {
     if (!isHeicType(file) && !isHeicName(file)) throw err
-    const { heicTo } = await import('heic-to/next')
-    return heicTo({ blob: file, type: 'bitmap' })
   }
+  // 3. HEIC the browser can't read itself: load the converter on demand
+  const { heicTo } = await import('heic-to/next')
+  return fromBitmap(await heicTo({ blob: file, type: 'bitmap' }))
 }
 
 export async function resizeImage(file: File): Promise<ResizedPhoto> {
@@ -37,7 +63,7 @@ export async function resizeImage(file: File): Promise<ResizedPhoto> {
   canvas.height = height
   const ctx = canvas.getContext('2d')
   if (!ctx) throw new Error('canvas not available')
-  ctx.drawImage(bitmap, 0, 0, width, height)
+  ctx.drawImage(bitmap.source, 0, 0, width, height)
   bitmap.close()
 
   const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/jpeg', QUALITY))
